@@ -25,6 +25,7 @@
     
     SXTabBar *tabBar = [[SXTabBar alloc]init];
     tabBar.frame = self.tabBar.bounds;
+    tabBar.backgroundColor = [UIColor colorWithRed:239/255.0 green:239/255.0 blue:239/255.0 alpha:1];
     
     [self.tabBar addSubview:tabBar];
     
@@ -41,7 +42,7 @@
     [tabBar addBarButtonWithNorName:@"tabbar_icon_found_normal" andDisName:@"tabbar_icon_found_highlight" andTitle:@"发现"];
     [tabBar addBarButtonWithNorName:@"tabbar_icon_me_normal" andDisName:@"tabbar_icon_me_highlight" andTitle:@"我"];
     
-    self.selectedIndex = 1;
+    self.selectedIndex = 0;
 }
 
 #pragma mark - ******************** SXTabBarDelegate代理方法
