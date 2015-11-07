@@ -34,6 +34,7 @@
 @property(nonatomic,strong)SXWeatherModel *weatherModel;
 
 @property(nonatomic,strong)UIButton *rightItem;
+@property (weak, nonatomic) IBOutlet NSLayoutConstraint *TopToTop;
 
 @end
 
@@ -51,6 +52,8 @@
 #pragma mark - ******************** 页面首次加载
 - (void)viewDidLoad {
     [super viewDidLoad];
+
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(showRightItem) name:@"SXAdvertisementKey" object:nil];
     
     self.automaticallyAdjustsScrollViewInsets = NO;
     self.smallScrollView.showsHorizontalScrollIndicator = NO;
@@ -77,55 +80,31 @@
     self.rightItem = rightItem;
     UIWindow *win = [UIApplication sharedApplication].windows.firstObject;
     [win addSubview:rightItem];
-    rightItem.y = 30;
-    rightItem.width = 20;
-    rightItem.height = 20;
+    rightItem.y = 20;
+    rightItem.width = 45;
+    rightItem.height = 45;
     [rightItem addTarget:self action:@selector(rightItemClick) forControlEvents:UIControlEventTouchUpInside];
-    rightItem.x = [UIScreen mainScreen].bounds.size.width - rightItem.width - 15;
+    rightItem.x = [UIScreen mainScreen].bounds.size.width - rightItem.width;
     NSLog(@"%@",NSStringFromCGRect(rightItem.frame));
     [rightItem setImage:[UIImage imageNamed:@"top_navigation_square"] forState:UIControlStateNormal];
     
     [self sendWeatherRequest];
 }
 
-- (void)rightItemClick{
-
-    if (self.isWeatherShow) {
-        
-
-        self.weatherView.hidden = YES;
-        self.tran.hidden = YES;
-        [UIView animateWithDuration:0.1 animations:^{
-            self.rightItem.transform = CGAffineTransformRotate(self.rightItem.transform, M_1_PI * 5);
-            
-        } completion:^(BOOL finished) {
-            [self.rightItem setImage:[UIImage imageNamed:@"top_navigation_square"] forState:UIControlStateNormal];
-        }];
-    }else{
-        
-        [self.rightItem setImage:[UIImage imageNamed:@"223"] forState:UIControlStateNormal];
-        self.weatherView.hidden = NO;
-        self.tran.hidden = NO;
-        [self.weatherView addAnimate];
-        [UIView animateWithDuration:0.2 animations:^{
-            self.rightItem.transform = CGAffineTransformRotate(self.rightItem.transform, -M_1_PI * 6);
-            
-        } completion:^(BOOL finished) {
-
-            [UIView animateWithDuration:0.1 animations:^{
-                self.rightItem.transform = CGAffineTransformRotate(self.rightItem.transform, M_1_PI );
-            } completion:^(BOOL finished) {
-                
-            }];
-        }];
-    }
-    self.weatherShow = !self.isWeatherShow;
-}
-
 
 - (void)viewWillAppear:(BOOL)animated
 {
+    if([[NSUserDefaults standardUserDefaults]boolForKey:@"top20"]){
+        self.TopToTop.constant = 20;
+        [[NSUserDefaults standardUserDefaults]setBool:NO forKey:@"top20"];
+    }else{
+        self.TopToTop.constant = 0;
+    }
     self.rightItem.hidden = NO;
+    if ([[NSUserDefaults standardUserDefaults] boolForKey:@"rightItem"]) {
+        self.rightItem.hidden = YES;
+        [[NSUserDefaults standardUserDefaults]setBool:NO forKey:@"rightItem"];
+    }
     self.rightItem.alpha = 0;
     [UIView animateWithDuration:0.4 animations:^{
         self.rightItem.alpha = 1;
@@ -133,43 +112,29 @@
     [self.navigationController setNavigationBarHidden:NO animated:YES];
 }
 
+- (void)viewWillDisappear:(BOOL)animated
+{
+    self.rightItem.hidden = YES;
+    self.rightItem.transform = CGAffineTransformIdentity;
+    [self.rightItem setImage:[UIImage imageNamed:@"top_navigation_square"] forState:UIControlStateNormal];
+}
+
+- (void)showRightItem
+{
+    self.rightItem.hidden = NO;
+}
+
 #pragma mark - ******************** 添加方法
 
 /** 添加子控制器 */
 - (void)addController
 {
-    SXTableViewController *vc1 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc1.title = @"头条";
-    vc1.urlString = self.arrayLists[0][@"urlString"];
-    [self addChildViewController:vc1];
-    SXTableViewController *vc2 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc2.title = @"NBA";
-    vc2.urlString = self.arrayLists[1][@"urlString"];
-    [self addChildViewController:vc2];
-    SXTableViewController *vc3 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc3.title = @"手机";
-    vc3.urlString = self.arrayLists[2][@"urlString"];
-    [self addChildViewController:vc3];
-    SXTableViewController *vc4 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc4.title = @"移动互联";
-    vc4.urlString = self.arrayLists[3][@"urlString"];
-    [self addChildViewController:vc4];
-    SXTableViewController *vc8 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc8.title = @"娱乐";
-    vc8.urlString = self.arrayLists[4][@"urlString"];
-    [self addChildViewController:vc8];
-    SXTableViewController *vc5 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc5.title = @"时尚";
-    vc5.urlString = self.arrayLists[5][@"urlString"];
-    [self addChildViewController:vc5];
-    SXTableViewController *vc6 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc6.title = @"电影";
-    vc6.urlString = self.arrayLists[6][@"urlString"];
-    [self addChildViewController:vc6];
-    SXTableViewController *vc7 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
-    vc7.title = @"科技";
-    vc7.urlString = self.arrayLists[7][@"urlString"];
-    [self addChildViewController:vc7];
+    for (int i=0 ; i<self.arrayLists.count ;i++){
+        SXTableViewController *vc1 = [[UIStoryboard storyboardWithName:@"News" bundle:[NSBundle mainBundle]] instantiateInitialViewController];
+        vc1.title = self.arrayLists[i][@"title"];
+        vc1.urlString = self.arrayLists[i][@"urlString"];
+        [self addChildViewController:vc1];
+    }
 }
 
 /** 添加标题栏 */
@@ -313,16 +278,34 @@
 }
 
 
-- (IBAction)rightItemClick:(UIBarButtonItem *)sender {
+- (void)rightItemClick{
+    
     if (self.isWeatherShow) {
+        
+        
         self.weatherView.hidden = YES;
+        self.tran.hidden = YES;
+        [UIView animateWithDuration:0.1 animations:^{
+            self.rightItem.transform = CGAffineTransformRotate(self.rightItem.transform, M_1_PI * 5);
+            
+        } completion:^(BOOL finished) {
+            [self.rightItem setImage:[UIImage imageNamed:@"top_navigation_square"] forState:UIControlStateNormal];
+        }];
     }else{
-
-        self.navigationItem.rightBarButtonItem.image = [UIImage imageNamed:@"223.png"];
         
-        
+        [self.rightItem setImage:[UIImage imageNamed:@"223"] forState:UIControlStateNormal];
         self.weatherView.hidden = NO;
+        self.tran.hidden = NO;
         [self.weatherView addAnimate];
+        [UIView animateWithDuration:0.2 animations:^{
+            self.rightItem.transform = CGAffineTransformRotate(self.rightItem.transform, -M_1_PI * 6);
+            
+        } completion:^(BOOL finished) {
+            
+            [UIView animateWithDuration:0.1 animations:^{
+                self.rightItem.transform = CGAffineTransformRotate(self.rightItem.transform, M_1_PI );
+            }];
+        }];
     }
     self.weatherShow = !self.isWeatherShow;
 }
@@ -330,9 +313,6 @@
 - (void)pushWeatherDetail
 {
     self.weatherShow = NO;
-    self.rightItem.hidden = YES;
-    self.rightItem.transform = CGAffineTransformIdentity;
-    [self.rightItem setImage:[UIImage imageNamed:@"top_navigation_square"] forState:UIControlStateNormal];
     SXWeatherDetailVC *wdvc = [[SXWeatherDetailVC alloc]init];
     wdvc.weatherModel = self.weatherModel;
     [self.navigationController pushViewController:wdvc animated:YES];

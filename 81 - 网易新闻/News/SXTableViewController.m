@@ -13,6 +13,8 @@
 #import "SXNetworkTools.h"
 #import "MJRefresh.h"
 
+#import "MJExtension.h"
+
 @interface SXTableViewController ()
 
 @property(nonatomic,strong) NSMutableArray *arrayList;
@@ -25,9 +27,12 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
 
+    self.view.backgroundColor = [UIColor clearColor];
     [self.tableView addHeaderWithTarget:self action:@selector(loadData)];
     [self.tableView addFooterWithTarget:self action:@selector(loadMoreData)];
     self.update = YES;
+    
+    [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(welcome) name:@"SXAdvertisementKey" object:nil];
 //    self.tableView.headerHidden = NO;
 }
 
@@ -41,8 +46,17 @@
     _urlString = urlString;
 }
 
+- (void)welcome
+{
+    [[NSUserDefaults standardUserDefaults]setBool:YES forKey:@"update"];
+    [self.tableView headerBeginRefreshing];
+}
+
 - (void)viewWillAppear:(BOOL)animated
 {
+    if (![[NSUserDefaults standardUserDefaults]boolForKey:@"update"]) {
+        return;
+    }
 //    NSLog(@"bbbb");
     if (self.update == YES) {
         [self.tableView headerBeginRefreshing];
@@ -65,6 +79,7 @@
 - (void)loadMoreData
 {
     NSString *allUrlstring = [NSString stringWithFormat:@"/nc/article/%@/%ld-20.html",self.urlString,(self.arrayList.count - self.arrayList.count%10)];
+//    NSString *allUrlstring = [NSString stringWithFormat:@"/nc/article/%@/%ld-20.html",self.urlString,self.arrayList.count];
     [self loadDataForType:2 withURL:allUrlstring];
 }
 
@@ -77,19 +92,21 @@
         
         NSArray *temArray = responseObject[key];
         
-        NSMutableArray *arrayM = [NSMutableArray arrayWithCapacity:temArray.count];
-        [temArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
-            
-            SXNewsModel *news = [SXNewsModel newsModelWithDict:obj];
-            [arrayM addObject:news];
-        }];
+        NSMutableArray *arrayM = [SXNewsModel objectArrayWithKeyValuesArray:temArray];
+        
+//        NSMutableArray *arrayM = [NSMutableArray arrayWithCapacity:temArray.count];
+//        [temArray enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+//            
+//            SXNewsModel *news = [SXNewsModel newsModelWithDict:obj];
+//            [arrayM addObject:news];
+//        }];
         if (type == 1) {
             self.arrayList = arrayM;
             [self.tableView headerEndRefreshing];
             [self.tableView reloadData];
         }else if(type == 2){
             [self.arrayList addObjectsFromArray:arrayM];
-            //        NSLog(@"%ld",self.arrayList.count);
+            
             [self.tableView footerEndRefreshing];
             [self.tableView reloadData];
         }
@@ -110,6 +127,10 @@
     
     NSString *ID = [SXNewsCell idForRow:newsModel];
     
+    if ((indexPath.row%20 == 0)&&(indexPath.row != 0)) {
+        ID = @"NewsCell";
+    }
+    
     SXNewsCell * cell = [tableView dequeueReusableCellWithIdentifier:ID];
     
     cell.NewsModel = newsModel;
@@ -123,7 +144,13 @@
 {
     SXNewsModel *newsModel = self.arrayList[indexPath.row];
     
-    return [SXNewsCell heightForRow:newsModel];
+    CGFloat rowHeight = [SXNewsCell heightForRow:newsModel];
+    
+    if ((indexPath.row%20 == 0)&&(indexPath.row != 0)) {
+        rowHeight = 80;
+    }
+    
+    return rowHeight;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
